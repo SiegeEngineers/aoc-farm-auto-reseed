@@ -6,7 +6,7 @@
 #ifdef NDEBUG
 #define dbg_print(...)
 #else
-#define dbg_print(...) printf("[aoc-builtin-rms] [hook] " __VA_ARGS__)
+#define dbg_print(...) printf("[aoc-farm-auto-reseed] [hook] " __VA_ARGS__)
 #endif
 
 struct hook {
