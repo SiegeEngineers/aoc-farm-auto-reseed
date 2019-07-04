@@ -15,7 +15,7 @@ Games\Your Mod Name\Data\language_x1_m.dll # optionally, language file with cust
 Games\Your Mod Name\mmmods\aoc-farm-auto-reseed.dll # the farm reseeding module!
 ```
 
-There is also an `aoc-farm-auto-reseed-nosync.dll` version. This version does not maintain backwards compatibility with UserPatch 1.5 recorded games. If you watch a game that was recorded _with_ farm-auto-reseed-nosync in a version of Userpatch _without_ it, you will get out of sync errors. I recommend _only_ doing this if your mod already contains other sync-breaking changes.
+> **Note** This mod is sync-breaking. If you watch a game that was recorded _with_ farm-auto-reseed in a version of UserPatch _without_ it, you will get out of sync errors.
 
 ## Build
 

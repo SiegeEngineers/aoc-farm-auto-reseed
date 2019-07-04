@@ -34,20 +34,11 @@ set(SOURCE_FILES
 )
 
 add_library(aoc-farm-auto-reseed SHARED ${SOURCE_FILES})
-add_library(aoc-farm-auto-reseed-nosync SHARED ${SOURCE_FILES})
-
-target_compile_definitions(aoc-farm-auto-reseed-nosync PUBLIC BREAKSYNC)
 
 if (UNIX)
   set_target_properties(aoc-farm-auto-reseed PROPERTIES
       PREFIX ""
       SUFFIX ".dll")
-  set_target_properties(aoc-farm-auto-reseed-nosync PROPERTIES
-      PREFIX ""
-      SUFFIX ".dll")
 endif()
 install(TARGETS aoc-farm-auto-reseed
         LIBRARY DESTINATION lib)
-install(TARGETS aoc-farm-auto-reseed-nosync
-        LIBRARY DESTINATION lib)
-
