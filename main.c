@@ -22,7 +22,7 @@ static const size_t FARM_AUTOQUEUE_MASK = 0x2;
 
 static uint8_t is_autoqueue_enabled(void* player) {
   uint8_t bits = *(uint8_t*)((size_t)player + FARM_AUTOQUEUE_SETTING_OFFSET);
-  return bits & FARM_AUTOQUEUE_MASK;
+  return (bits & FARM_AUTOQUEUE_MASK) ? 1 : 0;
 }
 static void toggle_autoqueue_flag(void* player) {
   int32_t player_id = *(int32_t*)((size_t)player + 0x9C);
@@ -36,6 +36,14 @@ static void toggle_autoqueue_flag(void* player) {
   dbg_print("setting autoqueue for %d to %d\n", player_id, !current);
 
   *(uint8_t*)((size_t)player + FARM_AUTOQUEUE_SETTING_OFFSET) = current;
+}
+
+// Some utility functions.
+
+typedef void* __thiscall (*fn_get_player)(void*);
+static inline void* get_player() {
+  fn_get_player aoc_get_player = (fn_get_player)0x5E7560;
+  return aoc_get_player(*(void**)0x7912A0);
 }
 
 // Add one to the farm queue.
@@ -72,7 +80,6 @@ char __thiscall rebuild_farm_hook(void* ptr) {
 
 // Toggle the automatic queueing setting for the current player.
 
-typedef void* __thiscall (*fn_get_player)(void*);
 typedef char* __stdcall (*fn_get_string)(int32_t);
 typedef void __thiscall (*fn_add_farm)(void*, int32_t, int32_t);
 typedef void __stdcall (*fn_display_message)(char*, int32_t);
@@ -80,11 +87,10 @@ void __thiscall toggle_farm_reseed() {
   dbg_print("toggle_farm_reseed()\n");
   fn_add_farm aoc_add_farm = (fn_add_farm)0x46A6F0;
   fn_display_message aoc_display_message = (fn_display_message)0x51CD30;
-  fn_get_player aoc_get_player = (fn_get_player)0x5E7560;
   fn_get_string aoc_get_string = (fn_get_string)0x562CE0;
 
   void* world = *(void**)(*(size_t*)0x7912A0 + 0x424);
-  void* player = aoc_get_player(*(void**)0x7912A0);
+  void* player = get_player();
   // RIP if this happens...
   if (player == NULL)
     return;
@@ -105,6 +111,48 @@ void __thiscall toggle_farm_reseed() {
   aoc_add_farm(commander, player_id, 0);
 }
 
+static uint8_t is_mill(void* obj) {
+  void* obj_type = *(void**)((size_t)obj + 0x8);
+  if (obj_type == NULL) {
+    dbg_print("obj_type == NULL\n");
+    return 0;
+  }
+  if (*(int16_t*)((size_t)obj_type + 0x10) != 68) {
+    dbg_print("obj_type != 68\n");
+    return 0;
+  }
+  return 1;
+}
+
+static void refresh_queue_button() {
+  dbg_print("refresh_queue_button()\n");
+  void* screen = *(void**)(*(size_t*)0x7912A0 + 0x1820);
+  void* player = get_player();
+
+  void* obj = *(void**)((size_t)screen + 0x1230);
+  if (obj == NULL) {
+    dbg_print("obj == NULL\n");
+    return;
+  }
+  if (*(void**)((size_t)obj + 0xC) != player) {
+    dbg_print("obj != player\n");
+    return;
+  }
+
+  if (!is_mill(obj)) {
+    return;
+  }
+
+  if (*(uint8_t*)((size_t)obj + 0x48) != 2) {
+    dbg_print("obj flag != 2\n");
+    return;
+  }
+
+  // Selected object type is Mill (68).
+  void __thiscall (*aoc_redraw_buttons)(void*) = (void __thiscall(*)(void*))0x527AF0;
+  aoc_redraw_buttons(screen);
+}
+
 // Handle a player changing their automatic queueing setting.
 
 int32_t __thiscall add_to_player_queue(void* player, int32_t count) {
@@ -113,6 +161,10 @@ int32_t __thiscall add_to_player_queue(void* player, int32_t count) {
 
   if (count == 0) {
     toggle_autoqueue_flag(player);
+
+    if (player == get_player()) {
+      refresh_queue_button();
+    }
 
 #ifndef NDEBUG
     fn_display_message aoc_display_message = (fn_display_message)0x51CD30;
@@ -139,6 +191,8 @@ typedef void __thiscall (*fn_configure_button)(void*, void*, int16_t, int16_t,
                                                int32_t, int32_t, int32_t,
                                                int32_t, int32_t, char*, char*,
                                                char*, int32_t);
+typedef void __thiscall (*fn_set_number_display_type)(void*, int32_t);
+typedef void __thiscall (*fn_set_number_display_value)(void*, int32_t, int32_t);
 void __thiscall configure_button(void* screen, void* a, int16_t button_id,
                                  int16_t c, int32_t d, int32_t e, int32_t f,
                                  int32_t g, int32_t h, char* i, char* j,
@@ -150,11 +204,20 @@ void __thiscall configure_button(void* screen, void* a, int16_t button_id,
   if (d != 173)
     return;
 
+  fn_set_number_display_type aoc_set_number_display_type =
+      (fn_set_number_display_type)0x453B70;
+  fn_set_number_display_value aoc_set_number_display_value =
+      (fn_set_number_display_value)0x453B90;
+
   void* button = *(void**)((size_t)screen + 0x1080 + 4 * button_id);
 
   // This is reset by the game before redrawing the buttons list so
   // we don't have to worry about lingering state.
   *(int32_t*)((size_t)button + 0x2D0) = d == 173;
+
+  aoc_set_number_display_type(button, 2); // only display if nonzero
+  aoc_set_number_display_value(
+      button, is_autoqueue_enabled(get_player()), 0);
 }
 
 // Handle right click action on the farm reseed button.
