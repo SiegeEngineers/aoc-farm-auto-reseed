@@ -17,6 +17,13 @@ Games\Your Mod Name\mmmods\aoc-farm-auto-reseed.dll # the farm reseeding module!
 
 > **Note** This mod is sync-breaking. If you watch a game that was recorded _with_ farm-auto-reseed in a version of UserPatch _without_ it, you will get out of sync errors.
 
+## Recorded Game Parsers
+
+Toggling the farm reseed autoqueue is recorded in recorded game files. Existing parsers should not have issues reading those actions, but may want to treat queue toggles specially.
+
+Normally, when you queue a farm reseed, a "Game" action with type 13 is written, together with how many farms are queued (1 or more).
+When toggling the autoqueue, a "Game" action with type 13 is written, with the number of farms set to 0.
+
 ## Build
 
 This project can only be built with MinGW GCC compilers at this time.
