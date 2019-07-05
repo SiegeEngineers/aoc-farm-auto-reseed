@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <windows.h>
 
-#define AOC_FARM_AUTO_RESEED_VERSION "0.0.0-alpha.0"
+#define AOC_FARM_AUTO_RESEED_VERSION "1.0.0-alpha.0"
 
 #ifdef NDEBUG
 #define dbg_print(...)
