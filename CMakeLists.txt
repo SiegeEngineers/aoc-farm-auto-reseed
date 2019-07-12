@@ -30,6 +30,7 @@ include_directories(include/)
 set(SOURCE_FILES
   hook.c
   main.c
+  farm_auto_reseed.c
   main.def
 )
 
