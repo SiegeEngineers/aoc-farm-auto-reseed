@@ -77,12 +77,22 @@ static char __thiscall rebuild_farm_hook(void* ptr) {
 
 // Toggle the automatic queueing setting for the current player.
 
+struct mp_game_meta_action {
+  // must be 103
+  uint8_t command;
+  uint8_t game_command;
+  int16_t param1;
+  int16_t param2;
+  float param3;
+  uint32_t param4;
+};
+
 typedef char* __stdcall (*fn_get_string)(int32_t);
-typedef void __thiscall (*fn_add_farm)(void*, int32_t, int32_t);
+typedef void __thiscall (*fn_send_command)(void*, void*, uint32_t, int32_t);
 typedef void __stdcall (*fn_display_message)(char*, int32_t);
 static void __thiscall toggle_farm_reseed() {
   dbg_print("toggle_farm_reseed()\n");
-  fn_add_farm aoc_add_farm = (fn_add_farm)0x46A6F0;
+  fn_send_command aoc_send_command = (fn_send_command)0x5C8F70;
   fn_display_message aoc_display_message = (fn_display_message)0x51CD30;
   fn_get_string aoc_get_string = (fn_get_string)0x562CE0;
 
@@ -102,10 +112,16 @@ static void __thiscall toggle_farm_reseed() {
   aoc_display_message(message, 1); // 1 = silent
 
   int32_t player_id = *(int32_t*)((size_t)player + 0x9C);
+  struct mp_game_meta_action action = {
+      .command = 103,
+      .game_command = 16,
+      .param1 = player_id,
+      .param2 = 0,
+      .param3 = 0,
+      .param4 = 0,
+  };
   void* commander = *(void**)((size_t)world + 0x68);
-  // Add 0 farms to indicate toggling automatic reseed queueing,
-  // this is meaningless to plain AoC.
-  aoc_add_farm(commander, player_id, 0);
+  aoc_send_command(commander, &action, sizeof(action), 0);
 }
 
 static uint8_t is_mill(void* obj) {
@@ -153,11 +169,14 @@ static void refresh_queue_button() {
 
 // Handle a player changing their automatic queueing setting.
 
-static int32_t __thiscall add_to_player_queue(void* player, int32_t count) {
-  dbg_print("add_to_player_queue()\n");
-  fn_queue_farms queue_farms = (fn_queue_farms)0x45E4F0;
-
-  if (count == 0) {
+typedef void __thiscall (*fn_do_meta_action)(void*,
+                                             struct mp_game_meta_action*);
+static void __thiscall do_meta_action(void* commander,
+                                      struct mp_game_meta_action* action) {
+  if (action->game_command == 16) {
+    void* world = *(void**)((size_t)commander + 0x4);
+    void** players = *(void***)((size_t)world + 0x4C);
+    void* player = players[action->param1];
     toggle_autoqueue_flag(player);
 
     if (player == get_player()) {
@@ -176,11 +195,10 @@ static int32_t __thiscall add_to_player_queue(void* player, int32_t count) {
            aoc_get_string(is_autoqueue_enabled(player) ? 10751 : 10752));
     aoc_display_message(message, 1); // 1 = silent
 #endif
-
-    return 1; // Success!
+  } else {
+    fn_do_meta_action original = (fn_do_meta_action)0x467380;
+    original(commander, action);
   }
-
-  return queue_farms(player, count);
 }
 
 // Allow right-clicking the farm reseed button.
@@ -245,7 +263,7 @@ static void __thiscall do_button_action(void* screen, int32_t action_in,
 void aoc_farm_auto_reseed_setup() {
   dbg_print("init()\n");
 
-  install_callhook((void*)0x467809, (void*)add_to_player_queue);
+  install_callhook((void*)0x4660E7, (void*)do_meta_action);
   install_callhook((void*)0x602FD3, (void*)rebuild_farm_hook);
   install_callhook((void*)0x60305B, (void*)rebuild_farm_hook);
   install_callhook((void*)0x527C59, (void*)configure_button);
