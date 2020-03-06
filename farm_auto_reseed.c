@@ -1,4 +1,5 @@
 #include "hook.h"
+#include <stddef.h> // size_t
 #include <stdint.h>
 #include <stdio.h>
 #include <windows.h>
