@@ -37,7 +37,7 @@ static void toggle_autoqueue_flag(void* player) {
 
 // Some utility functions.
 
-typedef void* __thiscall (*fn_get_player)(void*);
+typedef void* (__thiscall *fn_get_player)(void*);
 static inline void* get_player() {
   fn_get_player aoc_get_player = (fn_get_player)0x5E7560;
   return aoc_get_player(*(void**)0x7912A0);
@@ -45,7 +45,7 @@ static inline void* get_player() {
 
 // Add one to the farm queue.
 
-typedef char __thiscall (*fn_queue_farms)(void*, int32_t);
+typedef char (__thiscall *fn_queue_farms)(void*, int32_t);
 static void __thiscall enqueue_farm(size_t player) {
   fn_queue_farms queue_farms = (fn_queue_farms)0x45E4F0;
 
@@ -56,7 +56,7 @@ static void __thiscall enqueue_farm(size_t player) {
 
 // When a farm expired, refill the farm queue if it's empty.
 
-typedef char __thiscall (*fn_auto_rebuild_farm)(void*);
+typedef char (__thiscall *fn_auto_rebuild_farm)(void*);
 static char __thiscall rebuild_farm_hook(void* ptr) {
   fn_auto_rebuild_farm original = (fn_auto_rebuild_farm)0x603D40;
 
@@ -78,7 +78,7 @@ static char __thiscall rebuild_farm_hook(void* ptr) {
 // Toggle the automatic queueing setting for the current player.
 
 typedef char* __stdcall (*fn_get_string)(int32_t);
-typedef void __thiscall (*fn_add_farm)(void*, int32_t, int32_t);
+typedef void (__thiscall *fn_add_farm)(void*, int32_t, int32_t);
 typedef void __stdcall (*fn_display_message)(char*, int32_t);
 static void __thiscall toggle_farm_reseed() {
   dbg_print("toggle_farm_reseed()\n");
@@ -146,8 +146,8 @@ static void refresh_queue_button() {
   }
 
   // Selected object type is Mill (68).
-  void __thiscall (*aoc_redraw_buttons)(void*) =
-      (void __thiscall (*)(void*))0x527AF0;
+  void (__thiscall *aoc_redraw_buttons)(void*) =
+      (void (__thiscall *)(void*))0x527AF0;
   aoc_redraw_buttons(screen);
 }
 
@@ -185,12 +185,12 @@ static int32_t __thiscall add_to_player_queue(void* player, int32_t count) {
 
 // Allow right-clicking the farm reseed button.
 
-typedef void __thiscall (*fn_configure_button)(void*, void*, int16_t, int16_t,
+typedef void (__thiscall *fn_configure_button)(void*, void*, int16_t, int16_t,
                                                int32_t, int32_t, int32_t,
                                                int32_t, int32_t, char*, char*,
                                                char*, int32_t);
-typedef void __thiscall (*fn_set_number_display_type)(void*, int32_t);
-typedef void __thiscall (*fn_set_number_display_value)(void*, int32_t, int32_t);
+typedef void (__thiscall *fn_set_number_display_type)(void*, int32_t);
+typedef void (__thiscall *fn_set_number_display_value)(void*, int32_t, int32_t);
 static void __thiscall configure_button(void* screen, void* a,
                                         int16_t button_id, int16_t c, int32_t d,
                                         int32_t e, int32_t f, int32_t g,
@@ -220,7 +220,7 @@ static void __thiscall configure_button(void* screen, void* a,
 
 // Handle right click action on the farm reseed button.
 
-typedef void __thiscall (*fn_do_button_action)(void*, int32_t, int32_t,
+typedef void (__thiscall *fn_do_button_action)(void*, int32_t, int32_t,
                                                int32_t);
 static fn_do_button_action aoc_do_button_action = NULL;
 static void __thiscall do_button_action(void* screen, int32_t action_in,
