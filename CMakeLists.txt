@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.9.4)
 
-project(aoc-farm-auto-reseed)
+project(aoc-farm-auto-reseed
+  LANGUAGES C
+)
 
 if (UNIX)
   set(CMAKE_CROSS_COMPILING 1)
@@ -15,8 +17,9 @@ if (NOT MSVC)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 if(NOT MSVC)
   add_compile_options(-m32)
